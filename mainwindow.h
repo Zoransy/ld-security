@@ -39,6 +39,9 @@ private:
     QImage modifiedImage;
 
     // Functions for BMP image processing
+    std::vector<int> generateRandomSequence(const std::string &key, int length);
+    std::string extractMessageWithKey(const std::vector<uint8_t> &imageData, const std::string &key);
+    void embedMessageWithKey(std::vector<uint8_t> &imageData, const std::string &message, const std::string &key);
     void embedMessage(std::vector<uint8_t> &imageData, const std::string &message);
     std::string extractMessage(const std::vector<uint8_t> &imageData);
     size_t calculateMaxEmbedLength(const std::vector<uint8_t> &imageData);

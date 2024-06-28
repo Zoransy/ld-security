@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>LSB隐写</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="src.qrc">
+    <normaloff>:/icons/icons/icon.png</normaloff>:/icons/icons/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QPushButton" name="readImageButton">
@@ -26,6 +30,10 @@
     <property name="text">
      <string>读取图片</string>
     </property>
+    <property name="icon">
+     <iconset resource="src.qrc">
+      <normaloff>:/icons/icons/loadimage.png</normaloff>:/icons/icons/loadimage.png</iconset>
+    </property>
    </widget>
    <widget class="QPushButton" name="embedButton">
     <property name="geometry">
@@ -38,6 +46,10 @@
     </property>
     <property name="text">
      <string>嵌入</string>
+    </property>
+    <property name="icon">
+     <iconset resource="src.qrc">
+      <normaloff>:/icons/icons/embed.png</normaloff>:/icons/icons/embed.png</iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="saveImageButton">
@@ -52,6 +64,10 @@
     <property name="text">
      <string>存储图片</string>
     </property>
+    <property name="icon">
+     <iconset resource="src.qrc">
+      <normaloff>:/icons/icons/save.png</normaloff>:/icons/icons/save.png</iconset>
+    </property>
    </widget>
    <widget class="QPushButton" name="extractButton">
     <property name="geometry">
@@ -64,6 +80,10 @@
     </property>
     <property name="text">
      <string>提取</string>
+    </property>
+    <property name="icon">
+     <iconset resource="src.qrc">
+      <normaloff>:/icons/icons/extract.png</normaloff>:/icons/icons/extract.png</iconset>
     </property>
    </widget>
    <widget class="QPushButton" name="clearButton">
@@ -78,6 +98,10 @@
     <property name="text">
      <string>清空</string>
     </property>
+    <property name="icon">
+     <iconset resource="src.qrc">
+      <normaloff>:/icons/icons/clear.png</normaloff>:/icons/icons/clear.png</iconset>
+    </property>
    </widget>
    <widget class="QLabel" name="originalImageLabel">
     <property name="geometry">
@@ -88,14 +112,14 @@
       <height>250</height>
      </rect>
     </property>
+    <property name="frameShape">
+     <enum>QFrame::Box</enum>
+    </property>
     <property name="text">
-     <string>原图</string>
+     <string>原始图片</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::Box</enum>
     </property>
    </widget>
    <widget class="QLabel" name="modifiedImageLabel">
@@ -107,14 +131,14 @@
       <height>250</height>
      </rect>
     </property>
+    <property name="frameShape">
+     <enum>QFrame::Box</enum>
+    </property>
     <property name="text">
-     <string>嵌入信息后的图</string>
+     <string>嵌入信息后的图片</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::Box</enum>
     </property>
    </widget>
    <widget class="QLabel" name="imageInfoLabel">
@@ -126,14 +150,14 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="frameShape">
+     <enum>QFrame::Box</enum>
+    </property>
     <property name="text">
      <string>图片信息：宽度，高度，类型</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::Box</enum>
     </property>
    </widget>
    <widget class="QLabel" name="maxLengthLabel">
@@ -145,14 +169,14 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="frameShape">
+     <enum>QFrame::Box</enum>
+    </property>
     <property name="text">
-     <string>最大可嵌入信息长度</string>
+     <string>最大可嵌入信息长度：</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::Box</enum>
     </property>
    </widget>
    <widget class="QTextEdit" name="messageTextEdit">
@@ -165,7 +189,7 @@
      </rect>
     </property>
     <property name="placeholderText">
-     <string>输入要嵌入的信息</string>
+     <string>要嵌入的信息</string>
     </property>
    </widget>
    <widget class="QTextEdit" name="extractedMessageTextEdit">
@@ -181,11 +205,39 @@
      <bool>true</bool>
     </property>
     <property name="placeholderText">
-     <string>显示提取出的信息</string>
+     <string>提取出的信息</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="useEncryptionCheckBox">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>510</y>
+      <width>100</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>使用密钥</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="encryptionKeyLineEdit">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>510</y>
+      <width>650</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="placeholderText">
+     <string>输入密钥</string>
     </property>
    </widget>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="src.qrc"/>
+ </resources>
  <connections/>
 </ui>

@@ -5,6 +5,9 @@
 #include <QDebug>
 #include <fstream>
 #include <vector>
+#include <algorithm>
+#include <random>
+#include <ctime>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -16,6 +19,74 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
+std::vector<int> MainWindow::generateRandomSequence(const std::string &key, int length) {
+    std::vector<int> sequence(length);
+    std::iota(sequence.begin(), sequence.end(), 0);
+
+    std::seed_seq seed(key.begin(), key.end());
+    std::mt19937 generator(seed);
+
+    std::shuffle(sequence.begin(), sequence.end(), generator);
+
+    return sequence;
+}
+
+void MainWindow::embedMessageWithKey(std::vector<uint8_t> &imageData, const std::string &message, const std::string &key) {
+    size_t max_length = calculateMaxEmbedLength(imageData);
+    std::vector<uint8_t> encodedMessage;
+
+    for (char c : message) {
+        encodedMessage.push_back(static_cast<uint8_t>(c));
+    }
+
+    auto sequence = generateRandomSequence(key, imageData.size());
+
+    size_t data_index = 0;
+    for (uint8_t byte : encodedMessage) {
+        if (data_index + 8 > sequence.size()) {
+            break;
+        }
+        qDebug() << "Embedding byte:" << QString::number(byte, 2).rightJustified(8, '0');
+        for (int bit = 0; bit < 8; ++bit) {
+            int index = sequence[data_index];
+            imageData[index] = (imageData[index] & 0xFE) | ((byte >> bit) & 1);
+            ++data_index;
+        }
+    }
+
+    if (data_index + 8 <= sequence.size()) {
+        for (int bit = 0; bit < 8; ++bit) {
+            int index = sequence[data_index];
+            imageData[index] = (imageData[index] & 0xFE) | ((END_MARKER >> bit) & 1);
+            ++data_index;
+        }
+    }
+}
+
+std::string MainWindow::extractMessageWithKey(const std::vector<uint8_t> &imageData, const std::string &key) {
+    std::string message;
+    auto sequence = generateRandomSequence(key, imageData.size());
+
+    size_t data_index = 0;
+    while (data_index + 8 <= sequence.size()) {
+        uint8_t byte = 0;
+        for (int bit = 0; bit < 8; ++bit) {
+            int index = sequence[data_index];
+            byte |= (imageData[index] & 1) << bit;
+            ++data_index;
+        }
+
+        if (byte == END_MARKER) {
+            break;
+        }
+
+        message.push_back(byte);
+    }
+
+    return message;
+}
+
+
 void MainWindow::on_readImageButton_clicked() {
     QString filePath = QFileDialog::getOpenFileName(this, tr("Open Image"), "", tr("Image Files (*.bmp)"));
     if (!filePath.isEmpty()) {
@@ -23,9 +94,8 @@ void MainWindow::on_readImageButton_clicked() {
         if (readBMP(filePath)) {
             currentFilePath = filePath;
             size_t maxLength = calculateMaxEmbedLength(imageData);
-            ui->maxLengthLabel->setText("最大可嵌入信息长度: " + QString::number(maxLength) + "字节");
+            ui->maxLengthLabel->setText("最大可嵌入信息长度: " + QString::number(maxLength) + " 字节");
 
-            // Create a QImage from the processed image data
             if (bitCount == 24) {
                 originalImage = QImage(imageData.data(), width, height, QImage::Format_RGB888);
             } else if (bitCount == 8) {
@@ -57,9 +127,18 @@ void MainWindow::on_embedButton_clicked() {
         return;
     }
 
-    embedMessage(imageData, message.toStdString());
+    if (ui->useEncryptionCheckBox->isChecked()) {
+        QString key = ui->encryptionKeyLineEdit->text();
+        if (key.isEmpty()) {
+            QMessageBox::warning(this, tr("Warning"), tr("Please enter an encryption key."));
+            return;
+        }
+        embedMessageWithKey(imageData, message.toStdString(), key.toStdString());
+    } else {
+        embedMessage(imageData, message.toStdString());
+    }
 
-    // Create a QImage from the modified image data
+    // 图片用QImage展示，仅展示没有用QImage类的方法处理图像
     if (bitCount == 24) {
         modifiedImage = QImage(imageData.data(), width, height, QImage::Format_RGB888);
     } else if (bitCount == 8) {
@@ -93,20 +172,33 @@ void MainWindow::on_extractButton_clicked() {
         return;
     }
 
-    std::string message = extractMessage(imageData);
+    std::string message;
+    if (ui->useEncryptionCheckBox->isChecked()) {
+        QString key = ui->encryptionKeyLineEdit->text();
+        if (key.isEmpty()) {
+            QMessageBox::warning(this, tr("Warning"), tr("Please enter an encryption key."));
+            return;
+        }
+        message = extractMessageWithKey(imageData, key.toStdString());
+    } else {
+        message = extractMessage(imageData);
+    }
+
     ui->extractedMessageTextEdit->setPlainText(QString::fromStdString(message));
 }
 
 void MainWindow::on_clearButton_clicked() {
     ui->originalImageLabel->clear();
     ui->modifiedImageLabel->clear();
-    ui->imageInfoLabel->clear();
-    ui->maxLengthLabel->clear();
+    ui->modifiedImageLabel->setText("嵌入信息后的图片");
+    ui->originalImageLabel->setText("原始图片");
+    ui->imageInfoLabel->setText("图片信息：宽度，高度，类型");
+    ui->maxLengthLabel->setText("最大可嵌入信息长度：");
+
     ui->messageTextEdit->clear();
     ui->extractedMessageTextEdit->clear();
+    ui->encryptionKeyLineEdit->clear();
 }
-
-// Functions for BMP image processing
 
 size_t MainWindow::calculateMaxEmbedLength(const std::vector<uint8_t> &imageData) {
     if (bitCount == 24) {
@@ -159,9 +251,6 @@ void MainWindow::embedMessage(std::vector<uint8_t> &imageData, const std::string
     }
 }
 
-
-
-
 std::string MainWindow::extractMessage(const std::vector<uint8_t> &imageData) {
     std::string message;
     size_t data_index = 0;
@@ -173,7 +262,7 @@ std::string MainWindow::extractMessage(const std::vector<uint8_t> &imageData) {
             ++data_index;
         }
 
-        qDebug() << "Extracted byte:" << QString::number(byte, 2).rightJustified(8, '0');
+        //qDebug() << "Extracted byte:" << QString::number(byte, 2).rightJustified(8, '0');
 
         if (byte == END_MARKER) {
             break;
@@ -192,10 +281,6 @@ std::string MainWindow::extractMessage(const std::vector<uint8_t> &imageData) {
     return message;
 }
 
-
-
-
-
 bool MainWindow::readBMP(const QString &filePath) {
     qDebug() << "Attempting to open file: " << filePath;
     std::ifstream file(filePath.toStdString(), std::ios::binary);
@@ -204,7 +289,7 @@ bool MainWindow::readBMP(const QString &filePath) {
         return false;
     }
 
-    // Read the BMP file header
+    // BMP header
     char header[14];
     file.read(header, 14);
     if (file.gcount() != 14) {
@@ -212,7 +297,7 @@ bool MainWindow::readBMP(const QString &filePath) {
         return false;
     }
 
-    // Read the DIB header
+    // DIB header
     char dibHeader[40];
     file.read(dibHeader, 40);
     if (file.gcount() != 40) {
@@ -220,7 +305,7 @@ bool MainWindow::readBMP(const QString &filePath) {
         return false;
     }
 
-    // Extract information from the headers
+    // 提取信息
     width = *reinterpret_cast<int*>(&dibHeader[4]);
     height = *reinterpret_cast<int*>(&dibHeader[8]);
     bitCount = *reinterpret_cast<short*>(&dibHeader[14]);
@@ -228,19 +313,17 @@ bool MainWindow::readBMP(const QString &filePath) {
 
     qDebug() << "Width:" << width << "Height:" << height << "BitCount:" << bitCount << "DataOffset:" << dataOffset;
 
-    // Check if the image format is supported
+    // 检查BMP格式是否为24真彩或256灰度图
     if (bitCount != 24 && bitCount != 8) {
         qDebug() << "Error: Unsupported BMP format. Only 24-bit and 8-bit BMP files are supported.";
         return false;
     }
 
-    // Read the color table for 8-bit BMP files
     if (bitCount == 8) {
         colorTable.resize(256 * 4);
         file.read(reinterpret_cast<char*>(colorTable.data()), colorTable.size());
     }
 
-    // Read the image data
     file.seekg(dataOffset, std::ios::beg);
     imageData.resize(width * height * (bitCount / 8));
     file.read(reinterpret_cast<char*>(imageData.data()), imageData.size());
@@ -249,16 +332,18 @@ bool MainWindow::readBMP(const QString &filePath) {
         return false;
     }
 
-    // 打印读取的图像数据的二进制表示
-    //qDebug() << "Image data (binary representation):";
-    for (size_t i = 0; i < imageData.size(); ++i) {
-        //qDebug() << QString::number(imageData[i], 2).rightJustified(8, '0');
+    // BGR to RGB
+    if (bitCount == 24) {
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                int index = (y * width + x) * 3;
+                std::swap(imageData[index], imageData[index + 2]); // BGR to RGB
+            }
+        }
     }
 
     return true;
 }
-
-
 
 bool MainWindow::writeBMP(const QString &filePath, const std::vector<uint8_t> &imageData) {
     std::ofstream file(filePath.toStdString(), std::ios::binary);
@@ -267,7 +352,6 @@ bool MainWindow::writeBMP(const QString &filePath, const std::vector<uint8_t> &i
         return false;
     }
 
-    // Write the BMP file header and DIB header
     char header[14] = {
         'B', 'M', // Signature
         0, 0, 0, 0, // File size
@@ -302,22 +386,32 @@ bool MainWindow::writeBMP(const QString &filePath, const std::vector<uint8_t> &i
 
     file.write(dibHeader, sizeof(dibHeader));
 
-    // Write the color table for 8-bit BMP files
+    // color table
     if (bitCount == 8) {
         file.write(reinterpret_cast<const char*>(colorTable.data()), colorTable.size());
     }
 
-    // Write the image data
-    file.write(reinterpret_cast<const char*>(imageData.data()), imageData.size());
+    // RGB to BGR
+    std::vector<uint8_t> convertedData = imageData;
+    if (bitCount == 24) {
+        for (int y = 0; y < height; ++y) {
+            for (int x = 0; x < width; ++x) {
+                int index = (y * width + x) * 3;
+                std::swap(convertedData[index], convertedData[index + 2]);
+            }
+        }
+    }
+
+    file.write(reinterpret_cast<const char*>(convertedData.data()), convertedData.size());
     return true;
 }
 
+
 void MainWindow::displayImage(QLabel *label, const QImage &image) {
-    // 将图像垂直翻转
+    // 不知道为什么图像要翻转一下，不然显示的时候是上下颠倒的
     QImage flippedImage = image.mirrored(false, true);
     label->setPixmap(QPixmap::fromImage(flippedImage).scaled(label->size(), Qt::KeepAspectRatio));
 }
-
 
 void MainWindow::displayImageInfo() {
     QString imageInfo = QString("图片信息: 宽度: %1, 高度: %2, 类型: %3")

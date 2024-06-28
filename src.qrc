@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>icons/clear.png</file>
+        <file>icons/endecryption.png</file>
+        <file>icons/extract.png</file>
+        <file>icons/icon.png</file>
+        <file>icons/save.png</file>
+        <file>icons/loadimage.png</file>
+        <file>icons/embed.png</file>
+    </qresource>
+</RCC>
