@@ -66,13 +66,26 @@
      <string>提取</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="clearButton">
+    <property name="geometry">
+     <rect>
+      <x>510</x>
+      <y>30</y>
+      <width>100</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>清空</string>
+    </property>
+   </widget>
    <widget class="QLabel" name="originalImageLabel">
     <property name="geometry">
      <rect>
       <x>30</x>
       <y>80</y>
-      <width>200</width>
-      <height>200</height>
+      <width>350</width>
+      <height>250</height>
      </rect>
     </property>
     <property name="text">
@@ -88,10 +101,10 @@
    <widget class="QLabel" name="modifiedImageLabel">
     <property name="geometry">
      <rect>
-      <x>270</x>
+      <x>420</x>
       <y>80</y>
-      <width>200</width>
-      <height>200</height>
+      <width>350</width>
+      <height>250</height>
      </rect>
     </property>
     <property name="text">
@@ -104,17 +117,36 @@
      <enum>QFrame::Box</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="maxLengthLabel">
+   <widget class="QLabel" name="imageInfoLabel">
     <property name="geometry">
      <rect>
-      <x>500</x>
-      <y>80</y>
-      <width>250</width>
-      <height>40</height>
+      <x>30</x>
+      <y>340</y>
+      <width>740</width>
+      <height>30</height>
      </rect>
     </property>
     <property name="text">
-     <string>显示计算出来的可嵌入信息的最大长度</string>
+     <string>图片信息：宽度，高度，类型</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignCenter</set>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Box</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="maxLengthLabel">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>380</y>
+      <width>740</width>
+      <height>30</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>最大可嵌入信息长度</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
@@ -126,14 +158,30 @@
    <widget class="QTextEdit" name="messageTextEdit">
     <property name="geometry">
      <rect>
-      <x>500</x>
-      <y>140</y>
-      <width>250</width>
-      <height>140</height>
+      <x>30</x>
+      <y>420</y>
+      <width>350</width>
+      <height>80</height>
      </rect>
     </property>
     <property name="placeholderText">
-     <string>输入要嵌入的信息 / 显示提取出的信息</string>
+     <string>输入要嵌入的信息</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="extractedMessageTextEdit">
+    <property name="geometry">
+     <rect>
+      <x>420</x>
+      <y>420</y>
+      <width>350</width>
+      <height>80</height>
+     </rect>
+    </property>
+    <property name="readOnly">
+     <bool>true</bool>
+    </property>
+    <property name="placeholderText">
+     <string>显示提取出的信息</string>
     </property>
    </widget>
   </widget>
@@ -141,4 +189,3 @@
  <resources/>
  <connections/>
 </ui>
-

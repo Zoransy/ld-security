@@ -6,6 +6,7 @@
 #include <vector>
 #include <QImage>
 #include <QLabel>
+#include <QTextEdit>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,11 +24,13 @@ private slots:
     void on_embedButton_clicked();
     void on_saveImageButton_clicked();
     void on_extractButton_clicked();
+    void on_clearButton_clicked();
 
 private:
     Ui::MainWindow *ui;
     QString currentFilePath;
     std::vector<uint8_t> imageData;
+    std::vector<uint8_t> colorTable;
     int width;
     int height;
     int bitCount;
@@ -42,6 +45,9 @@ private:
     bool readBMP(const QString &filePath);
     bool writeBMP(const QString &filePath, const std::vector<uint8_t> &imageData);
     void displayImage(QLabel *label, const QImage &image);
+    void displayImageInfo();
+
+    const uint8_t END_MARKER = 0xFF; // 定义终止符
 };
 
 #endif // MAINWINDOW_H
