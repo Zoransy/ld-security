@@ -201,12 +201,7 @@ void MainWindow::on_clearButton_clicked() {
 }
 
 size_t MainWindow::calculateMaxEmbedLength(const std::vector<uint8_t> &imageData) {
-    if (bitCount == 24) {
-        return (imageData.size() / 3) / 8; // 每个像素有3个通道，计算字节数
-    } else if (bitCount == 8) {
-        return imageData.size() / 8; // 每个像素一个字节，计算字节数
-    }
-    return 0;
+    return imageData.size() / 8;
 }
 
 void MainWindow::embedMessage(std::vector<uint8_t> &imageData, const std::string &message) {
